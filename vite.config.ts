@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 
 const cw3Defaults: Plugin = {
   name: 'cw3-default-origin-cep',
+  enforce: 'pre',
   transform(code, id) {
     if (id.endsWith('/src/App.tsx')) {
       let next = code.replace(
@@ -49,5 +50,5 @@ const cw3Defaults: Plugin = {
 };
 
 export default defineConfig({
-  plugins: [react(), cw3Defaults],
+  plugins: [cw3Defaults, react()],
 });
