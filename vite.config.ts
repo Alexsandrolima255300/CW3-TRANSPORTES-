@@ -50,12 +50,12 @@ const cw3Defaults: Plugin = {
       'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * volumeValue;\n    const usedWeight = weightValue;'
     );
 
-    // CW3: frete peso = peso real x garantia em centavos/kg.
-    // GRIS = 0,30% do valor da NF-e e sempre entra no frete.
-    // A taxa de 3% é calculada sobre (frete peso + TDA/rural + GRIS) e somada ao total.
+    // CW3: a tarifa comercial é 3% do valor da NF, mas nunca pode ficar abaixo
+    // de R$59,00 no frete total nem abaixo de R$0,59/kg.
+    // GRIS = 0,30% do valor da NF e é somado depois ao frete.
     next = next.replace(
-      'const nfeCharge = nfValue * (cityRate.percentualNfe / 100);\n    const grisCharge = nfValue * (cityRate.gris / 100);\n    const ruralDetected = isRuralAddress();\n    const ruralKm = ruralDetected ? await getRuralDistanceKm() : 0;\n    const ruralCharge = ruralDetected && ruralKm > 0 ? ruralKm * 2 * RURAL_RATE : 0;\n    const calculatedFreight = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumFreight = weightValue * (cityRate.garantia / 1000);\n    const freight = Math.max(calculatedFreight, minimumFreight);',
-      'const freightWeight = weightValue * (cityRate.garantia / 1000);\n    const grisCharge = nfValue * (cityRate.gris / 100);\n    const ruralDetected = isRuralAddress();\n    const ruralKm = ruralDetected ? await getRuralDistanceKm() : 0;\n    const ruralCharge = ruralDetected && ruralKm > 0 ? ruralKm * 2 * RURAL_RATE : 0;\n    const freightBeforeThreePercent = freightWeight + cityRate.tda + ruralCharge + grisCharge;\n    const nfeCharge = freightBeforeThreePercent * (cityRate.percentualNfe / 100);\n    const freight = freightBeforeThreePercent + nfeCharge;'
+      'const freightWeight = weightValue * (cityRate.garantia / 1000);\n    const grisCharge = nfValue * (cityRate.gris / 100);\n    const ruralDetected = isRuralAddress();\n    const ruralKm = ruralDetected ? await getRuralDistanceKm() : 0;\n    const ruralCharge = ruralDetected && ruralKm > 0 ? ruralKm * 2 * RURAL_RATE : 0;\n    const freightBeforeThreePercent = freightWeight + cityRate.tda + ruralCharge + grisCharge;\n    const nfeCharge = freightBeforeThreePercent * (cityRate.percentualNfe / 100);\n    const freight = freightBeforeThreePercent + nfeCharge;',
+      'const nfeCharge = nfValue * (cityRate.percentualNfe / 100);\n    const minimumByWeight = weightValue * (cityRate.garantia / 1000);\n    const minimumFreight = Math.max(59, minimumByWeight);\n    const freight = Math.max(nfeCharge, minimumFreight);\n    const grisCharge = nfValue * (cityRate.gris / 100);'
     );
 
     next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para registrar a cubagem.')");
