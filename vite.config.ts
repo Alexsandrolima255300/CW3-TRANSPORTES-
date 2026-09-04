@@ -35,11 +35,36 @@ const cw3Defaults: Plugin = {
               </div>
               {cnpjMessage&&<div className="helper">{cnpjMessage}</div>}
               {destinationCepMessage&&<div className="helper">{destinationCepMessage}</div>}
-              {cityRate&&<div className="city-preview"><div><MapPin size={17}/><b>{cityRate.cidade}/{cityRate.uf}</b></div><span>ATENDIDO • {cityRate.prazo} dias • TDA {money(cityRate.tda)} • mínimo {money(cityRate.garantia)}</span></div>}
+              {cityRate&&<div className="city-preview"><div><MapPin size={17}/><b>{cityRate.cidade}/{cityRate.uf}</b></div><span>ATENDIDO • {cityRate.prazo} dias • TDA {money(cityRate.tda)} • mínimo {money(cityRate.garantia / 1000)}/kg</span></div>}
               {(destinationCnpj && !cityRate && cnpjMessage)&&<div className="helper">DESTINO NÃO ATENDIDO: a cidade do destinatário não está cadastrada na tabela comercial CW3.</div>}
               {address&&<div className="city-preview"><div><MapPin size={17}/><b>Destino localizado</b></div><span>{addressText(address)}</span></div>}
             </div>
           </div>`
+      );
+
+      next = next.replace(
+        'const beforeMinimum = nfeCharge + grisCharge + cityRate.tda + ruralCharge;\n    const freight = Math.max(beforeMinimum, cityRate.garantia);',
+        'const beforeMinimum = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumPerKg = cityRate.garantia / 1000;\n    const minimumFreightByWeight = usedWeight * minimumPerKg;\n    const freight = Math.max(beforeMinimum, minimumFreightByWeight);'
+      );
+
+      next = next.replace(
+        '\\nValor estimado: ${money(quote.freight)}`;',
+        '\\nFrete e valor: ${money(quote.freight)}\\nGRIS - Ressarcimento de Risco da Carga: ${money(quote.grisCharge)}\\nTotal da cotação: ${money(quote.freight + quote.grisCharge)}`;'
+      );
+
+      next = next.replace(
+        '<div className="result-price"><span>VALOR ESTIMADO DO FRETE</span><strong>{money(quote.freight)}</strong><small>Prazo máximo: {quote.destination.prazo} dias</small></div>',
+        '<div className="result-price"><span>VALOR TOTAL DA COTAÇÃO</span><strong>{money(quote.freight + quote.grisCharge)}</strong><small>Frete e valor: {money(quote.freight)} • GRIS: {money(quote.grisCharge)} • Prazo máximo: {quote.destination.prazo} dias</small></div>'
+      );
+
+      next = next.replace(
+        '<div className="breakdown"><h3>Composição da estimativa</h3><div><span>Percentual NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>GRIS ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div className="minimum"><span>Garantia / mínimo da cidade</span><b>{money(quote.destination.garantia)}</b></div></div>',
+        '<div className="breakdown"><h3>Detalhamento da cobrança</h3><div><span>Frete e valor</span><b>{money(quote.freight)}</b></div><div><span>GRIS — Ressarcimento de Risco da Carga ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div className="minimum"><span>Total da cotação</span><b>{money(quote.freight + quote.grisCharge)}</b></div><div><span>Composição do frete: NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div><span>Mínimo por peso</span><b>{money(quote.destination.garantia / 1000)}/kg</b></div></div>'
+      );
+
+      next = next.replace(
+        '<div className="result-warning"><ShieldCheck size={18}/><span>A proposta comercial informa os componentes da cobrança, mas não apresenta uma fórmula textual única para a combinação final. Esta versão usa o valor de garantia como mínimo da estimativa.</span></div>',
+        '<div className="result-warning"><ShieldCheck size={18}/><span>O Frete e Valor é calculado pelo maior valor entre o cálculo comercial e o mínimo por peso. O GRIS é o ressarcimento de risco da carga, calculado à parte em 0,30% do valor da NF-e e somado ao total.</span></div>'
       );
 
       next = next.replace("import './styles.css';", "import './styles.css';\nimport './route-parties.css';");
