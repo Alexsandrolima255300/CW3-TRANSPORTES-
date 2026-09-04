@@ -13,7 +13,7 @@ const cw3Defaults: Plugin = {
     );
 
     next = next.replace(
-      /<div className="field-grid two">\s*<label>Empresa de origem[\s\S]*?\{address&&<div className="city-preview"><div><MapPin size=\{17\}/><b>Destino localizado<\/b><\/div><span>\{addressText\(address\)\}<\/span><\/div>/,
+      /<div className="field-grid two">\s*<label>Empresa de origem[\s\S]*?\{address&&<div className="city-preview"><div><MapPin size=\{17\}\/\><b>Destino localizado<\/b><\/div><span>\{addressText\(address\)\}<\/span><\/div>/,
       String.raw`<div className="route-parties">
           <div className="party-card origin-party">
             <div className="party-heading"><span className="party-number">01</span><div><strong>ORIGEM</strong><small>Local de coleta</small></div></div>
