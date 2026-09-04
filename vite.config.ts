@@ -42,10 +42,7 @@ const cw3Defaults: Plugin = {
           </div>`
       );
 
-      // Regra CW3: o frete peso usa SOMENTE o peso real informado.
-      // A coluna Garantia do PDF (590/600/650 por tonelada) representa o mínimo por kg:
-      // 590 = R$ 0,59/kg, 600 = R$ 0,60/kg, 650 = R$ 0,65/kg.
-      // O peso cubado NÃO participa do cálculo do frete.
+      // REGRA CW3: somente peso real no frete. Garantia 590/600/650 da tabela = R$ 0,59/R$ 0,60/R$ 0,65 por kg.
       next = next.replace(
         'const beforeMinimum = nfeCharge + grisCharge + cityRate.tda + ruralCharge;\n    const freight = Math.max(beforeMinimum, cityRate.garantia);',
         'const minimumPerKg = cityRate.garantia / 1000;\n    const freightWeight = weightValue * minimumPerKg;\n    const freight = freightWeight + nfeCharge + cityRate.tda + ruralCharge;'
@@ -68,7 +65,7 @@ const cw3Defaults: Plugin = {
 
       next = next.replace(
         '<div className="breakdown"><h3>Composição da estimativa</h3><div><span>Percentual NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>GRIS ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div className="minimum"><span>Garantia / mínimo da cidade</span><b>{money(quote.destination.garantia)}</b></div></div>',
-        '<div className="breakdown"><h3>Detalhamento da cobrança</h3><div><span>Frete e valor</span><b>{money(quote.freight)}</b></div><div><span>GRIS — Ressarcimento de Risco da Carga ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div className="minimum"><span>Total da cotação</span><b>{money(quote.freight + quote.grisCharge)}</b></div><div><span>Composição do frete: NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div><span>Mínimo por peso real</span><b>{money(quote.destination.garantia / 1000)}/kg</b></div><div><span>Peso real considerado</span><b>{quote.weight.toFixed(2)} kg</b></div></div>'
+        '<div className="breakdown"><h3>Detalhamento da cobrança</h3><div><span>Frete e valor</span><b>{money(quote.freight)}</b></div><div><span>GRIS — Ressarcimento de Risco da Carga ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div className="minimum"><span>Total da cotação</span><b>{money(quote.freight + quote.grisCharge)}</b></div><div><span>Composição do frete: NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div><span>Garantia mínima</span><b>{money(quote.destination.garantia / 1000)}/kg</b></div><div><span>Peso real considerado</span><b>{quote.weight.toFixed(2)} kg</b></div></div>'
       );
 
       next = next.replace(
@@ -76,16 +73,12 @@ const cw3Defaults: Plugin = {
         '<div className="result-warning"><ShieldCheck size={18}/><span>O Frete Peso é calculado somente pelo peso real. A garantia da tabela é convertida de R$/tonelada para R$/kg (590 = R$ 0,59/kg; 600 = R$ 0,60/kg; 650 = R$ 0,65/kg). Depois são somadas as taxas aplicáveis. O GRIS é cobrado separadamente e somado ao total.</span></div>'
       );
 
-      // Dimensões continuam em centímetros apenas para informação/cubagem visual.
-      // A cubagem não altera o valor do frete.
-      next = next.replace('const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * CUBIC_FACTOR * volumeValue;\n    const usedWeight = weightValue;');
+      // Cubagem normal, somente informativa. Sem fator 300 e sem impacto no frete.
+      next = next.replace('const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * volumeValue;\n    const usedWeight = weightValue;');
+      next = next.replace('const cubedWeight = (h / 100) * (w / 100) * (l / 100) * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * volumeValue;\n    const usedWeight = weightValue;');
+      next = next.replace(/const CUBIC_FACTOR = 300;\s*/g, '');
+      next = next.replace(/Fator 300/g, '');
       next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para calcular a cubagem.')");
-
-      next = next.replace(
-        'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;',
-        'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;'
-      );
-
       next = next.replace(/>Altura<\/label>/g, '>Altura (cm)</label>');
       next = next.replace(/>Largura<\/label>/g, '>Largura (cm)</label>');
       next = next.replace(/>Comprimento<\/label>/g, '>Comprimento (cm)</label>');
