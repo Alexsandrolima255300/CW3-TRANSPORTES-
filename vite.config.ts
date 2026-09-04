@@ -67,6 +67,27 @@ const cw3Defaults: Plugin = {
         '<div className="result-warning"><ShieldCheck size={18}/><span>O Frete e Valor é calculado pelo maior valor entre o cálculo comercial e o mínimo por peso. O GRIS é o ressarcimento de risco da carga, calculado à parte em 0,30% do valor da NF-e e somado ao total.</span></div>'
       );
 
+      // Dimensões são informadas em centímetros apenas para exibir a cubagem estimada.
+      // A CW3 considera somente o peso real no cálculo do frete; a cubagem não altera o valor.
+      next = next.replace('const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * CUBIC_FACTOR * volumeValue;\n    const usedWeight = weightValue;');
+      next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para exibir a cubagem estimada.')");
+      next = next.replace('const freight = Math.max(beforeMinimum, minimumFreightByWeight);', 'const freight = Math.max(beforeMinimum, minimumFreightByWeight);');
+      // O cálculo acima mantém a variável de mínimo por peso disponível para exibição, mas não usa cubagem.
+      next = next.replace('const minimumFreightByWeight = usedWeight * minimumPerKg;', 'const minimumFreightByWeight = weightValue * minimumPerKg;');
+
+      next = next.replace(
+        'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;\',',
+        'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;\','
+      );
+
+      // Mantém a estética e apenas esclarece a unidade dos campos de dimensão.
+      next = next.replace(/>Altura<\/label>/g, '>Altura (cm)<\/label>');
+      next = next.replace(/>Largura<\/label>/g, '>Largura (cm)<\/label>');
+      next = next.replace(/>Comprimento<\/label>/g, '>Comprimento (cm)<\/label>');
+      next = next.replace(/placeholder="0\.00 m"/g, 'placeholder="0,00 cm"');
+      next = next.replace(/placeholder="0\.00"/g, 'placeholder="0,00"');
+      next = next.replace(/Dimensões por volume: \$\{quote\.height\.toFixed\(2\)\} x \$\{quote\.width\.toFixed\(2\)\} x \$\{quote\.length\.toFixed\(2\)\} m/g, 'Dimensões por volume: ${quote.height.toFixed(2)} x ${quote.width.toFixed(2)} x ${quote.length.toFixed(2)} cm');
+
       next = next.replace("import './styles.css';", "import './styles.css';\nimport './route-parties.css';");
       return next;
     }
