@@ -13,7 +13,7 @@ const cw3Defaults: Plugin = {
     );
 
     next = next.replace(
-      /<div className="field-grid two">\s*<label>Empresa de origem[\s\S]*?\{address&&<div className="city-preview"><div><MapPin size=\{17\}\/\><b>Destino localizado<\/b><\/div><span>\{addressText\(address\)\}<\/span><\/div>/,
+      /<div className="field-grid two">\s*<label>Empresa de origem[\s\S]*?\{address&&<div className="city-preview"><div><MapPin size=\{17\}\/\><b>Destino localizado<\/b><\/div><span>\{addressText\(address\)\}<\/span><\/div>\s*<\/div>/,
       String.raw`<div className="route-parties">
           <div className="party-card origin-party">
             <div className="party-heading"><span className="party-number">01</span><div><strong>ORIGEM</strong><small>Local de coleta</small></div></div>
@@ -43,7 +43,7 @@ const cw3Defaults: Plugin = {
         </div>`
     );
 
-    // CW3: cubagem apenas informativa; o frete usa exclusivamente o peso real.
+    // CW3: cubagem apenas informativa e sem fator 300; o frete usa exclusivamente o peso real.
     next = next.replace('const CUBIC_FACTOR = 300;\n', '');
     next = next.replace(
       'const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);',
@@ -57,7 +57,7 @@ const cw3Defaults: Plugin = {
       'const calculatedFreight = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumFreight = weightValue * (cityRate.garantia / 1000);\n    const freight = Math.max(calculatedFreight, minimumFreight);'
     );
 
-    next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para calcular a cubagem.')");
+    next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para registrar a cubagem.')");
     next = next.replace(/const CUBIC_FACTOR = 300;\s*/g, '');
     next = next.replace(/Fator 300/g, '');
     next = next.replace(/>Altura<\/label>/g, '>Altura (cm)</label>');
