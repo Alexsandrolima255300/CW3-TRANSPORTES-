@@ -42,9 +42,18 @@ const cw3Defaults: Plugin = {
           </div>`
       );
 
+      // Garantia mínima por peso: sempre considera o maior entre peso real e peso cubado.
+      // A garantia da tabela é informada em R$/tonelada (ex.: 590 => R$ 0,59/kg).
+      // O GRIS não entra na comparação da garantia: ele é cobrado separadamente e somado ao final.
       next = next.replace(
         'const beforeMinimum = nfeCharge + grisCharge + cityRate.tda + ruralCharge;\n    const freight = Math.max(beforeMinimum, cityRate.garantia);',
-        'const beforeMinimum = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumPerKg = cityRate.garantia / 1000;\n    const minimumFreightByWeight = usedWeight * minimumPerKg;\n    const freight = Math.max(beforeMinimum, minimumFreightByWeight);'
+        'const beforeMinimum = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumPerKg = cityRate.garantia / 1000;\n    const minimumWeight = Math.max(weightValue, cubedWeight);\n    const minimumFreightByWeight = minimumWeight * minimumPerKg;\n    const freight = Math.max(beforeMinimum, minimumFreightByWeight);'
+      );
+
+      // Se a versão anterior já estiver usando a fórmula intermediária, substitui pela regra correta.
+      next = next.replace(
+        'const beforeMinimum = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumPerKg = cityRate.garantia / 1000;\n    const minimumFreightByWeight = weightValue * minimumPerKg;\n    const freight = Math.max(beforeMinimum, minimumFreightByWeight);',
+        'const beforeMinimum = nfeCharge + cityRate.tda + ruralCharge;\n    const minimumPerKg = cityRate.garantia / 1000;\n    const minimumWeight = Math.max(weightValue, cubedWeight);\n    const minimumFreightByWeight = minimumWeight * minimumPerKg;\n    const freight = Math.max(beforeMinimum, minimumFreightByWeight);'
       );
 
       next = next.replace(
@@ -59,28 +68,23 @@ const cw3Defaults: Plugin = {
 
       next = next.replace(
         '<div className="breakdown"><h3>Composição da estimativa</h3><div><span>Percentual NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>GRIS ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div className="minimum"><span>Garantia / mínimo da cidade</span><b>{money(quote.destination.garantia)}</b></div></div>',
-        '<div className="breakdown"><h3>Detalhamento da cobrança</h3><div><span>Frete e valor</span><b>{money(quote.freight)}</b></div><div><span>GRIS — Ressarcimento de Risco da Carga ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div className="minimum"><span>Total da cotação</span><b>{money(quote.freight + quote.grisCharge)}</b></div><div><span>Composição do frete: NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div><span>Mínimo por peso</span><b>{money(quote.destination.garantia / 1000)}/kg</b></div></div>'
+        '<div className="breakdown"><h3>Detalhamento da cobrança</h3><div><span>Frete e valor</span><b>{money(quote.freight)}</b></div><div><span>GRIS — Ressarcimento de Risco da Carga ({quote.destination.gris.toFixed(2)}%)</span><b>{money(quote.grisCharge)}</b></div><div className="minimum"><span>Total da cotação</span><b>{money(quote.freight + quote.grisCharge)}</b></div><div><span>Composição do frete: NF-e ({quote.destination.percentualNfe.toFixed(2)}%)</span><b>{money(quote.nfeCharge)}</b></div><div><span>TDA</span><b>{money(quote.tda)}</b></div>{quote.ruralCharge>0&&<div><span>Zona rural • {quote.ruralKm.toFixed(1)} km</span><b>{money(quote.ruralCharge)}</b></div>}<div><span>Mínimo por peso considerado</span><b>{money(quote.destination.garantia / 1000)}/kg</b></div><div><span>Peso considerado para garantia</span><b>{quote.usedWeight.toFixed(2)} kg</b></div></div>'
       );
 
       next = next.replace(
         '<div className="result-warning"><ShieldCheck size={18}/><span>A proposta comercial informa os componentes da cobrança, mas não apresenta uma fórmula textual única para a combinação final. Esta versão usa o valor de garantia como mínimo da estimativa.</span></div>',
-        '<div className="result-warning"><ShieldCheck size={18}/><span>O Frete e Valor é calculado pelo maior valor entre o cálculo comercial e o mínimo por peso. O GRIS é o ressarcimento de risco da carga, calculado à parte em 0,30% do valor da NF-e e somado ao total.</span></div>'
+        '<div className="result-warning"><ShieldCheck size={18}/><span>A garantia mínima por peso é aplicada sobre o maior entre peso real e peso cubado. A garantia da tabela é convertida de R$/tonelada para R$/kg (590 = R$ 0,59/kg; 600 = R$ 0,60/kg; 650 = R$ 0,65/kg). O valor do Frete e Valor nunca fica abaixo desse mínimo. O GRIS de 0,30% é cobrado separadamente e somado ao total.</span></div>'
       );
 
-      // Dimensões são informadas em centímetros apenas para exibir a cubagem estimada.
-      // A CW3 considera somente o peso real no cálculo do frete; a cubagem não altera o valor.
-      next = next.replace('const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * CUBIC_FACTOR * volumeValue;\n    const usedWeight = weightValue;');
-      next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para exibir a cubagem estimada.')");
-      next = next.replace('const freight = Math.max(beforeMinimum, minimumFreightByWeight);', 'const freight = Math.max(beforeMinimum, minimumFreightByWeight);');
-      // O cálculo acima mantém a variável de mínimo por peso disponível para exibição, mas não usa cubagem.
-      next = next.replace('const minimumFreightByWeight = usedWeight * minimumPerKg;', 'const minimumFreightByWeight = weightValue * minimumPerKg;');
+      // Dimensões em centímetros. O peso cubado participa somente da regra de garantia mínima por peso.
+      next = next.replace('const cubedWeight = h * w * l * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);', 'const cubedWeight = (h / 100) * (w / 100) * (l / 100) * CUBIC_FACTOR * volumeValue;\n    const usedWeight = Math.max(weightValue, cubedWeight);');
+      next = next.replace("setError('Informe altura, largura e comprimento para calcular a cubagem.')", "setError('Informe altura, largura e comprimento em centímetros para calcular a cubagem.')");
 
       next = next.replace(
         'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;\',',
         'next = next.replace(\'\\nValor estimado: ${money(quote.freight)}`;\','
       );
 
-      // Mantém a estética e apenas esclarece a unidade dos campos de dimensão.
       next = next.replace(/>Altura<\/label>/g, '>Altura (cm)<\/label>');
       next = next.replace(/>Largura<\/label>/g, '>Largura (cm)<\/label>');
       next = next.replace(/>Comprimento<\/label>/g, '>Comprimento (cm)<\/label>');
