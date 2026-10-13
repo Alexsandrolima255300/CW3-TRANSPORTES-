@@ -191,10 +191,14 @@ export default function App() {
   return <div className="app">
     {isPageLoading && <div className="site-loader" role="status" aria-live="polite" aria-label="Carregando site CW3">
       <div className="loader-content">
+        <div className="loader-orbit" aria-hidden="true"><span /></div>
         <div className="loader-logo-wrap"><img className="loader-logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transportes & Logística" /></div>
-        <div className="loader-road" aria-hidden="true"><span className="loader-truck"><svg viewBox="0 0 48 30" fill="none"><path d="M3 5h25v17H3zM28 11h9l7 7v4H28z" fill="currentColor"/><path d="M32 13h4l4 5H32z" fill="#fff"/><circle cx="12" cy="24" r="4" fill="#171719" stroke="currentColor" strokeWidth="2"/><circle cx="35" cy="24" r="4" fill="#171719" stroke="currentColor" strokeWidth="2"/></svg></span></div>
-        <p>Preparando sua experiência</p><span className="loader-subtitle">CW3 Transportes & Logística</span>
+        <span className="loader-kicker">TRANSPORTE • LOGÍSTICA • CONFIANÇA</span>
+        <p>Levando você mais longe.</p>
+        <div className="loader-progress" aria-hidden="true"><span /></div>
+        <span className="loader-subtitle">Preparando sua cotação</span>
       </div>
+      <span className="loader-corner loader-corner-left" aria-hidden="true" /><span className="loader-corner loader-corner-right" aria-hidden="true" />
     </div>}
     <header className="header">
       <a className="brand" href="#inicio" onClick={()=>setMenuOpen(false)}><img src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transporte & Logística" width={185} height={72} style={{ display: "block", objectFit: "contain" }} /></a>
