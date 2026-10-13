@@ -111,12 +111,30 @@ export default function App() {
     if (clean.length !== 14) { setCnpjMessage('Digite um CNPJ válido com 14 números.'); return; }
     setCnpjLoading(true); setCnpjMessage(''); setAddress(null);
     try {
-      const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`);
-      if (response.status === 404) throw new Error('NOT_FOUND');
-      if (response.status === 400) throw new Error('INVALID');
-      if (response.status === 429 || response.status >= 500) throw new Error('UNAVAILABLE');
-      if (!response.ok) throw new Error('UNAVAILABLE');
-      const data: CompanyInfo = await response.json();
+      // Primary source: BrasilAPI. If it is unavailable/rate-limited, try Minha Receita directly.
+      // Keep timeouts bounded so the form does not remain stuck waiting on an external service.
+      let data: CompanyInfo | null = null;
+      let primaryFailure: 'NOT_FOUND' | 'INVALID' | 'UNAVAILABLE' = 'UNAVAILABLE';
+      try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`, { signal: AbortSignal.timeout(9000) });
+        if (response.status === 404) primaryFailure = 'NOT_FOUND';
+        else if (response.status === 400) primaryFailure = 'INVALID';
+        else if (response.ok) data = await response.json() as CompanyInfo;
+      } catch {
+        primaryFailure = 'UNAVAILABLE';
+      }
+      if (!data && primaryFailure !== 'INVALID' && primaryFailure !== 'NOT_FOUND') {
+        try {
+          const fallback = await fetch(`https://minhareceita.org/${clean}`, { signal: AbortSignal.timeout(9000) });
+          if (fallback.ok) data = await fallback.json() as CompanyInfo;
+          else if (fallback.status === 400) primaryFailure = 'INVALID';
+          else if (fallback.status === 404 && primaryFailure !== 'UNAVAILABLE') primaryFailure = 'NOT_FOUND';
+        } catch {
+          // Both providers may be temporarily unreachable; show a clear recovery message below.
+        }
+      }
+      if (!data) throw new Error(primaryFailure);
+      if (!data.municipio || !data.uf) throw new Error('UNAVAILABLE');
       const company = data.nome_fantasia || data.razao_social || 'Empresa identificada';
       setRecipientName(company);
       const info: AddressInfo = { logradouro:data.logradouro, bairro:data.bairro, localidade:data.municipio, uf:data.uf, complemento:data.complemento, numero:data.numero, cep:data.cep };
