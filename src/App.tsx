@@ -94,9 +94,10 @@ export default function App() {
         setMessage(rate && normalize(data.localidade) === 'UBERABA' && normalize(data.uf) === 'MG' ? `${addressText(info)} — origem dentro da negociação CW3.` : `${addressText(info)} — a negociação desta proposta tem origem em Uberaba/MG.`);
       } else {
         setAddress(info);
-        if (rate) setDestination(rate.cidade);
+        // Never keep a previous destination when the newly entered CEP is outside the tariff table.
+        setDestination(rate ? rate.cidade : '');
         setDestinationCep(formatCep(data.cep || clean));
-        setDestinationCepMessage(rate ? `${addressText(info)} — destino atendido pela tabela CW3.` : `${addressText(info)} — esta cidade não está cadastrada na tabela CW3.`);
+        setDestinationCepMessage(rate ? `${addressText(info)} — destino atendido pela tabela CW3.` : `${addressText(info)} — esta cidade não está cadastrada na tabela CW3. Selecione manualmente uma cidade atendida antes de calcular.`);
       }
     } catch {
       setMessage('Não foi possível consultar o CEP agora.');
@@ -111,7 +112,10 @@ export default function App() {
     setCnpjLoading(true); setCnpjMessage(''); setAddress(null);
     try {
       const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`);
-      if (!response.ok) throw new Error('CNPJ não encontrado');
+      if (response.status === 404) throw new Error('NOT_FOUND');
+      if (response.status === 400) throw new Error('INVALID');
+      if (response.status === 429 || response.status >= 500) throw new Error('UNAVAILABLE');
+      if (!response.ok) throw new Error('UNAVAILABLE');
       const data: CompanyInfo = await response.json();
       const company = data.nome_fantasia || data.razao_social || 'Empresa identificada';
       setRecipientName(company);
@@ -126,9 +130,12 @@ export default function App() {
         setDestination('');
         setCnpjMessage(`${company} — CNPJ localizado, mas ${data.municipio || 'a cidade informada'}/${data.uf || ''} não está cadastrada na tabela CW3.`);
       }
-    } catch {
+    } catch (err) {
       setRecipientName('');
-      setCnpjMessage('CNPJ não encontrado na BrasilAPI. Confira os números e tente novamente.');
+      const reason = err instanceof Error ? err.message : '';
+      if (reason === 'NOT_FOUND') setCnpjMessage('CNPJ não localizado. Confira os números digitados.');
+      else if (reason === 'INVALID') setCnpjMessage('A BrasilAPI recusou a consulta. Confira se o CNPJ tem 14 números válidos.');
+      else setCnpjMessage('A consulta da BrasilAPI está temporariamente indisponível. Tente novamente em instantes ou informe o CEP manualmente.');
     } finally { setCnpjLoading(false); }
   }
 
@@ -143,15 +150,21 @@ export default function App() {
     try {
       const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${destinationQuery}`);
       const places = await geo.json();
-      if (!places?.[0]) return 0;
+      if (!geo.ok) throw new Error('Não foi possível localizar o endereço rural.');
+      if (!places?.[0]) throw new Error('Endereço rural não localizado no mapa.');
       const from = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent('Uberaba, MG, Brasil')}`);
+      if (!from.ok) throw new Error('Não foi possível localizar Uberaba no mapa.');
       const origins = await from.json();
-      if (!origins?.[0]) return 0;
+      if (!origins?.[0]) throw new Error('Origem Uberaba não localizada no mapa.');
       const coords = `${origins[0].lon},${origins[0].lat};${places[0].lon},${places[0].lat}`;
       const route = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=false`);
+      if (!route.ok) throw new Error('Serviço de rotas indisponível.');
       const data = await route.json();
-      return data?.routes?.[0]?.distance ? data.routes[0].distance / 1000 : 0;
-    } catch { return 0; }
+      if (!data?.routes?.[0]?.distance) throw new Error('Não foi possível calcular a distância rodoviária.');
+      return data.routes[0].distance / 1000;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Falha ao calcular a distância rural.');
+    }
   }
 
   async function calculate() {
@@ -173,9 +186,16 @@ export default function App() {
     const nfeCharge = nfValue * (cityRate.percentualNfe / 100);
     const grisCharge = nfValue * (cityRate.gris / 100);
     const ruralDetected = isRuralAddress();
-    const ruralKm = ruralDetected ? await getRuralDistanceKm() : 0;
-    const ruralCharge = ruralDetected && ruralKm > 0 ? ruralKm * 2 * RURAL_RATE : 0;
-    const calculatedFreight = nfeCharge + cityRate.tda + ruralCharge;
+    let ruralKm = 0;
+    if (ruralDetected) {
+      try { ruralKm = await getRuralDistanceKm(); }
+      catch (err) {
+        return setError(`${err instanceof Error ? err.message : 'Não foi possível calcular a distância rural.'} A cotação foi interrompida para evitar omitir essa cobrança. Confira o endereço e tente novamente.`);
+      }
+    }
+    const ruralCharge = ruralDetected ? ruralKm * 2 * RURAL_RATE : 0;
+    // Include all displayed tariff components in the estimate before applying the city minimum.
+    const calculatedFreight = nfeCharge + grisCharge + cityRate.tda + ruralCharge;
     const minimumFreight = weightValue * (cityRate.garantia / 1000);
     const freight = Math.max(calculatedFreight, minimumFreight);
     setQuote({ destination:cityRate, nf:nfValue, weight:weightValue, volumes:volumeValue, cargoType, height:h, width:w, length:l, cubedWeight, usedWeight, nfeCharge, grisCharge, tda:cityRate.tda, ruralCharge, ruralDetected, ruralKm, freight, recipientName, recipientCnpj:onlyDigits(destinationCnpj), destinationCep, destinationAddress:addressText(address), originCep, originAddress:addressText(originAddress) });
