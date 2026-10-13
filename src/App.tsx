@@ -184,7 +184,7 @@ export default function App() {
 
   return <div className="app">
     <header className="header">
-      <a className="brand" href="#inicio" onClick={()=>setMenuOpen(false)}><img src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transporte & Logística" width={185} height={72} style={{ display: "block", width: "185px", height: "72px", maxWidth: "100%", objectFit: "contain" }} /></a>
+      <a className="brand" href="#inicio" onClick={()=>setMenuOpen(false)}><img src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transporte & Logística" width={185} height={72} style={{ display: "block", objectFit: "contain" }} /></a>
       <button className="mobile-menu" onClick={()=>setMenuOpen(v=>!v)} aria-label="Abrir menu">{menuOpen?<X size={24}/>:<Menu size={24}/>}</button>
       <nav className={menuOpen?'nav open':'nav'}><a href="#inicio">Início</a><a href="#cotacao">Cotação</a><a href="#como-funciona">Como funciona</a><a href="#atendimento">Atendimento</a><a className="nav-cta" href="#cotacao">Calcular frete <ArrowRight size={17}/></a></nav>
     </header>
