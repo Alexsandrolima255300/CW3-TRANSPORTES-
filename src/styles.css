@@ -68,3 +68,33 @@ html{scroll-padding-top:92px}
 .steps>div:nth-child(2){animation-delay:.15s}
 .steps>div:nth-child(3){animation-delay:.3s}
 .contact-section{animation:cw3-rise-in .8s ease-out both}
+
+
+/* Sistema de animação renovado: fluido, leve e consistente */
+@keyframes cw3-reveal-up {
+  from { opacity: 0; transform: translate3d(0, 26px, 0) scale(.99); filter: blur(3px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@keyframes cw3-red-breathe {
+  0%, 100% { box-shadow: 0 8px 24px rgba(229,29,42,.16); }
+  50% { box-shadow: 0 12px 32px rgba(229,29,42,.29); }
+}
+@keyframes cw3-route-dash {
+  to { stroke-dashoffset: -24; }
+}
+.cw3-reveal { opacity: 0; transform: translate3d(0, 26px, 0) scale(.99); filter: blur(3px); }
+.cw3-reveal.cw3-in-view { animation: cw3-reveal-up .72s cubic-bezier(.2,.7,.2,1) var(--cw3-delay, 0ms) both; }
+.hero-copy.cw3-reveal.cw3-in-view { animation: cw3-reveal-up .8s cubic-bezier(.2,.7,.2,1) var(--cw3-delay, 0ms) both; }
+.hero-card.cw3-reveal.cw3-in-view { animation: cw3-reveal-up .85s cubic-bezier(.2,.7,.2,1) var(--cw3-delay, 0ms) both, cw3-float-card 6s 1s ease-in-out infinite; }
+.hero-card { transform-origin: center; }
+.hero-card:hover { border-color: rgba(229,29,42,.3); }
+.hero .button.primary, .nav-cta { animation: cw3-red-breathe 3.8s ease-in-out infinite; }
+.button, .nav a, .input-action button, .calculate, .steps > div, .info-card, .city-preview { will-change: transform; }
+.button:active, .calculate:active { transform: scale(.98); }
+.steps > div:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 42px rgba(17,17,19,.09); }
+.info-card, .form-card, .steps > div { transition: transform .32s cubic-bezier(.2,.7,.2,1), box-shadow .32s ease, border-color .32s ease; }
+.route-line > svg { animation: cw3-route-move 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .cw3-reveal, .cw3-reveal.cw3-in-view, .hero-card.cw3-reveal.cw3-in-view { opacity: 1; transform: none; filter: none; animation: none !important; }
+  .hero .button.primary, .nav-cta, .route-line > svg { animation: none !important; }
+}
