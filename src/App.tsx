@@ -28,6 +28,8 @@ const formatCnpj = (value: string) => { const d = onlyDigits(value).slice(0, 14)
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  useEffect(() => { const timer = window.setTimeout(() => setPageLoading(false), 1500); return () => window.clearTimeout(timer); }, []);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setPageLoading(false), 1500);
@@ -189,6 +191,7 @@ export default function App() {
   }
 
   return <div className="app">
+    {pageLoading && <div className="loading-screen" role="status" aria-label="Carregando site"><div className="loading-content"><img className="loading-logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transportes & Logística" /><div className="loading-track"><span /></div><p>Preparando sua experiência</p><small>TRANSPORTES &amp; LOGÍSTICA</small></div></div>}
     {pageLoading && <div className="loading-screen" role="status" aria-label="Carregando site">
       <div className="loading-content">
         <img className="loading-logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transportes & Logística" />
