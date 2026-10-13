@@ -51,3 +51,20 @@ html{scroll-padding-top:92px}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* Animações mais perceptíveis */
+@keyframes cw3-header-in{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cw3-float-card{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes cw3-glow-pulse{0%,100%{box-shadow:0 8px 24px rgba(229,29,42,.18)}50%{box-shadow:0 12px 34px rgba(229,29,42,.42)}}
+@keyframes cw3-route-move{0%,100%{transform:translateX(0)}50%{transform:translateX(7px)}}
+.header{animation:cw3-header-in .7s ease-out both}
+.hero:before{animation:cw3-orbit-glow 7s ease-in-out infinite}
+.hero-card{animation:cw3-rise-in .9s .15s ease-out both,cw3-float-card 5s 1.2s ease-in-out infinite}
+.hero .button.primary,.nav-cta{animation:cw3-glow-pulse 3s 1s ease-in-out infinite}
+.route-line>svg{animation:cw3-route-move 1.8s ease-in-out infinite}
+.form-card{animation:cw3-rise-in .8s .15s ease-out both}
+.info-card{animation:cw3-rise-in .8s .25s ease-out both}
+.steps>div{animation:cw3-rise-in .7s ease-out both}
+.steps>div:nth-child(2){animation-delay:.15s}
+.steps>div:nth-child(3){animation-delay:.3s}
+.contact-section{animation:cw3-rise-in .8s ease-out both}
