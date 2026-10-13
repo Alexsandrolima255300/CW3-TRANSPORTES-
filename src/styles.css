@@ -24,3 +24,30 @@
 @keyframes loader-fade-in{from{opacity:0}to{opacity:1}}
 @media(max-width:480px){.site-loader:before{inset:12px}.loader-logo-wrap{width:210px;height:110px}.loader-orbit{width:246px;height:146px;top:-14px}.loader-kicker{font-size:8px;letter-spacing:.15em}.loader-content p{font-size:18px}.loader-corner-left{left:25px;bottom:25px}.loader-corner-right{right:25px;top:25px}}
 @media(prefers-reduced-motion:reduce){.loader-progress span,.loader-logo-wrap,.loader-orbit,.site-loader{animation-duration:.01ms;animation-iteration-count:1}}
+
+
+/* Animações premium CW3 */
+@keyframes cw3-rise-in{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes cw3-slide-in{from{opacity:0;transform:translate3d(-18px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes cw3-soft-pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,29,42,0)}50%{box-shadow:0 0 0 8px rgba(229,29,42,.055)}}
+@keyframes cw3-orbit-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.85;transform:scale(1.04)}}
+.hero-copy{animation:cw3-slide-in .75s cubic-bezier(.2,.75,.25,1) both}
+.hero-card{animation:cw3-rise-in .85s .12s cubic-bezier(.2,.75,.25,1) both}
+.hero-glow{animation:cw3-orbit-glow 7s ease-in-out infinite}
+.hero-card,.form-card,.info-card,.steps>div,.result-shell,.contact-section>div{animation:cw3-rise-in .7s both}
+.steps>div:nth-child(2){animation-delay:.1s}
+.steps>div:nth-child(3){animation-delay:.2s}
+.nav>a,.button,.nav-cta,.input-action button,.calculate,.steps>div,.info-card,.form-card,.hero-card,.city-preview{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background-color .24s ease}
+.nav>a:not(.nav-cta):hover{transform:translateY(-2px)}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(229,29,42,.18);background:var(--red)!important}
+.button:hover,.calculate:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(229,29,42,.2)}
+.hero-card:hover,.form-card:hover,.info-card:hover,.steps>div:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,.09)}
+.steps>div:hover{border-color:rgba(229,29,42,.32)}
+.input-action button:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px)}
+.city-preview{animation:cw3-rise-in .35s ease both}
+.calculate:focus-visible,.button:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid rgba(229,29,42,.35);outline-offset:3px}
+html{scroll-padding-top:92px}
+#cotacao,#como-funciona,#atendimento,#resultado{scroll-margin-top:92px}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
