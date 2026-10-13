@@ -32,6 +32,30 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  // Animações de entrada suaves conforme cada seção aparece na tela.
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targets = document.querySelectorAll('.hero-copy, .hero-card, .section-heading, .form-card, .side-info, .steps > div, .contact-section, .result-main, .result-grid, .breakdown');
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      targets.forEach((element) => element.classList.add('cw3-in-view'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('cw3-in-view');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: '0px 0px -35px 0px' });
+    targets.forEach((element, index) => {
+      (element as HTMLElement).style.setProperty('--cw3-delay', `${Math.min(index % 3, 2) * 90}ms`);
+      element.classList.add('cw3-reveal');
+      observer.observe(element);
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [destination, setDestination] = useState('');
   const [originCep, setOriginCep] = useState('');
