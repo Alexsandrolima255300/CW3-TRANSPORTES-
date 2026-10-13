@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowRight, Calculator, CheckCircle2, ChevronDown, Clock3, Download, MapPin, Menu, MessageCircle, Package, Ruler, Search, ShieldCheck, Truck, X } from 'lucide-react';
 import { cities, type CityRate } from './data/cities';
 import './styles.css';
@@ -27,8 +27,6 @@ const formatCnpj = (value: string) => { const d = onlyDigits(value).slice(0, 14)
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-  useEffect(() => { const timer = window.setTimeout(() => setPageLoading(false), 1500); return () => window.clearTimeout(timer); }, []);
   const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
@@ -191,15 +189,6 @@ export default function App() {
   }
 
   return <div className="app">
-    {pageLoading && <div className="loading-screen" role="status" aria-label="Carregando site"><div className="loading-content"><img className="loading-logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transportes & Logística" /><div className="loading-track"><span /></div><p>Preparando sua experiência</p><small>TRANSPORTES &amp; LOGÍSTICA</small></div></div>}
-    {pageLoading && <div className="loading-screen" role="status" aria-label="Carregando site">
-      <div className="loading-content">
-        <img className="loading-logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transportes & Logística" />
-        <div className="loading-track"><span /></div>
-        <p>Preparando sua experiência</p>
-        <small>TRANSPORTES &amp; LOGÍSTICA</small>
-      </div>
-    </div>}
     <header className="header">
       <a className="brand" href="#inicio" onClick={()=>setMenuOpen(false)}><img src="https://raw.githubusercontent.com/Alexsandrolima255300/CW3-TRANSPORTES-/main/WhatsApp%20Image%202026-10-13%20at%2010.46.52.jpeg" alt="CW3 Transporte & Logística" /></a>
       <button className="mobile-menu" onClick={()=>setMenuOpen(v=>!v)} aria-label="Abrir menu">{menuOpen?<X size={24}/>:<Menu size={24}/>}</button>
