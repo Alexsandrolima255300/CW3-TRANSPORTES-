@@ -211,7 +211,7 @@ export default function App() {
 
   async function calculate() {
     setError(''); setQuote(null);
-    const nfValue = Number(nf.replace(',', '.'));
+    const nfValue = Number(nf.trim().replace(/\./g, '').replace(',', '.'));
     const weightValue = Number(weight.replace(',', '.'));
     const volumeValue = Math.max(1, Number(volumes) || 1);
     const h = Number(height.replace(',', '.'));
